@@ -1,0 +1,60 @@
+name: بناء تطبيق dlof-dbg (APK)
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+  workflow_dispatch: {}
+
+concurrency:
+  group: build-apk-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: بناء APK (Debug)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: سحب الكود
+        uses: actions/checkout@v4
+
+      - name: تثبيت JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: تثبيت Gradle (لإنشاء الـ wrapper إن لزم)
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: إنشاء gradlew تلقائياً إن لم يكن موجوداً
+        id: gen_wrapper
+        run: |
+          if [ ! -f "./gradlew" ]; then
+            echo "gradlew غير موجود، سيتم إنشاؤه..."
+            gradle wrapper --gradle-version 8.7
+            echo "generated=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "generated=false" >> "$GITHUB_OUTPUT"
+          fi
+          chmod +x ./gradlew
+
+      - name: بناء APK (Debug قابل للتثبيت مباشرة)
+        run: ./gradlew assembleDebug --no-daemon
+
+      - name: تشغيل اختبارات الوحدة (إن وُجدت)
+        run: ./gradlew testDebugUnitTest --no-daemon
+
+      - name: رفع APK كمخرجات (Artifact)
+        uses: actions/upload-artifact@v4
+        with:
+          name: dlof-dbg-debug-apk
+          path: app/build/outputs/apk/debug/*.apk
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: حذف ملفات gradlew المولّدة تلقائياً
+        if: always() && steps.gen_wrapper.outputs.generated == 'true'
+        run: rm -rf gradlew gradlew.bat gradle/wrapper/gradle-wrapper.jar
