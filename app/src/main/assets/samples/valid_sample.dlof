@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<documentLoop version="1.0" id="term-001">
+  <metadata>
+    <title>مقدمة في صيغة DLoF</title>
+    <domain>infoLoop</domain>
+    <author>فريق dlof-dbg</author>
+    <tags>xml,format,demo</tags>
+  </metadata>
+  <loopLinks>
+    <previous></previous>
+    <next></next>
+  </loopLinks>
+  <content type="termDefinition">
+    <term>DLoF</term>
+    <definition>صيغة ملفات XML مفتوحة لتخزين وربط المستندات في حلقات ذاتية الترابط بدون فهرس مركزي.</definition>
+    <example>ملف .dlof واحد يحمل إشارة next/previous لجاره في الحلقة.</example>
+  </content>
+</documentLoop>
