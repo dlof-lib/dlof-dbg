@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">مصحح DLoF</string>
+
+    <string name="btn_open_file">فتح ملف .dlof أو .dlofpkg</string>
+    <string name="btn_open_sample_valid">تجربة: ملف نموذجي صحيح</string>
+    <string name="btn_open_sample_broken">تجربة: ملف نموذجي به أخطاء</string>
+    <string name="btn_autofix">تصحيح تلقائي وحفظ نسخة</string>
+
+    <string name="status_idle">اختر ملف .dlof أو حزمة .dlofpkg لبدء الفحص.</string>
+    <string name="status_scanning">جارٍ الفحص…</string>
+    <string name="status_result_ok">✅ لا توجد مشاكل. الملف/الحزمة سليمة.</string>
+    <string name="status_result_issues">تم العثور على %1$d مشكلة (%2$d خطأ، %3$d تحذير).</string>
+    <string name="status_open_failed">تعذّر فتح أو قراءة الملف المحدد.</string>
+    <string name="status_autofix_done">تم حفظ النسخة المصححة.</string>
+    <string name="status_autofix_failed">تعذّر تطبيق التصحيح التلقائي.</string>
+    <string name="status_no_autofixable">لا توجد مشاكل قابلة للتصحيح التلقائي في هذا التقرير.</string>
+
+    <string name="severity_error">خطأ</string>
+    <string name="severity_warning">تحذير</string>
+    <string name="severity_info">معلومة</string>
+
+    <string name="label_file">الملف:</string>
+    <string name="label_line">السطر:</string>
+    <string name="label_fixable">قابل للتصحيح التلقائي</string>
+</resources>
