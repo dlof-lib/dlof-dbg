@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="dlof_primary">#2E5AAC</color>
+    <color name="dlof_primary_dark">#1E3E7A</color>
+    <color name="dlof_accent">#3DDC84</color>
+
+    <color name="dlof_background">#F5F7FA</color>
+    <color name="dlof_surface">#FFFFFF</color>
+    <color name="dlof_text_primary">#1A1F27</color>
+    <color name="dlof_text_secondary">#5B6472</color>
+
+    <color name="dlof_error">#D64545</color>
+    <color name="dlof_error_bg">#FDECEC</color>
+    <color name="dlof_warning">#C97A1E</color>
+    <color name="dlof_warning_bg">#FDF3E5</color>
+    <color name="dlof_info">#2E5AAC</color>
+    <color name="dlof_info_bg">#E9F0FC</color>
+    <color name="dlof_ok">#1E8E5A</color>
