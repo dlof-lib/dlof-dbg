@@ -26,6 +26,10 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
+            app:icon="@drawable/ic_scan"
+            app:iconGravity="textStart"
+            app:iconTint="@color/dlof_surface"
+            android:contentDescription="@string/content_desc_icon_scan"
             android:text="@string/btn_open_file" />
     </LinearLayout>
 
@@ -81,6 +85,13 @@
         android:layout_height="wrap_content"
         android:layout_margin="12dp"
         android:visibility="gone"
+        app:backgroundTint="@color/dlof_accent"
+        app:cornerRadius="10dp"
+        app:icon="@drawable/ic_terminal"
+        app:iconGravity="textStart"
+        app:iconTint="@color/dlof_text_primary"
+        android:textColor="@color/dlof_text_primary"
+        android:contentDescription="@string/content_desc_icon_terminal"
         android:text="@string/btn_autofix" />
 
 </LinearLayout>
