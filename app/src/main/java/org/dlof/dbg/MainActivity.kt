@@ -130,7 +130,7 @@ class MainActivity : AppCompatActivity() {
         bgExecutor.execute {
             try {
                 if (currentIsPackage) {
-                    writeFixedPackage(uri, fileName, bytes, report)
+                    writeFixedPackage(uri, bytes, report)
                 } else {
                     writeFixedSingleFile(uri, fileName, bytes, report)
                 }
@@ -156,7 +156,7 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun writeFixedPackage(uri: Uri, fileName: String, bytes: ByteArray, report: ValidationReport) {
+    private fun writeFixedPackage(uri: Uri, bytes: ByteArray, report: ValidationReport) {
         // 1) استخراج كل ملفات .dlof النصية لتطبيق التصحيح عليها
         val dlofEntries = linkedMapOf<String, String>()
         ZipInputStream(ByteArrayInputStream(bytes)).use { zis ->
