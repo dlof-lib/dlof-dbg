@@ -18,4 +18,9 @@
     <color name="dlof_info">#2E5AAC</color>
     <color name="dlof_info_bg">#E9F0FC</color>
     <color name="dlof_ok">#1E8E5A</color>
+
+    <!-- طرفية الإصلاح الذكي (AI مدمج): خلفية داكنة ونص أخضر بأسلوب Terminal -->
+    <color name="dlof_terminal_bg">#0B0B14</color>
+    <color name="dlof_terminal_text">#4AF626</color>
+    <color name="dlof_terminal_text_dim">#6FA37A</color>
 </resources>
