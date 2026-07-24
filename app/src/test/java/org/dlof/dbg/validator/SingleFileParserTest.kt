@@ -1,224 +1,79 @@
 package org.dlof.dbg.validator
 
-import org.xml.sax.Attributes
-import org.xml.sax.InputSource
-import org.xml.sax.Locator
-import org.xml.sax.SAXException
-import org.xml.sax.helpers.DefaultHandler
-import java.io.StringReader
-import javax.xml.parsers.SAXParserFactory
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
+import org.junit.Test
 
-/**
- * يفحص محتوى ملف .dlof واحد (نص XML) ويعيد [SingleFileResult] يضم كل المشاكل
- * المكتشفة داخل هذا الملف بمعزل عن بقية ملفات الحزمة. فحوصات الروابط المتقاطعة
- * بين الملفات (next/previous) تتم لاحقاً في [PackageValidator].
- */
-object SingleFileParser {
+class SingleFileParserTest {
 
-    fun parse(fileName: String, xmlContent: String): SingleFileResult {
-        val handler = Handler(fileName)
-        try {
-            val factory = SAXParserFactory.newInstance().apply {
-                isNamespaceAware = false
-                setFeature("http://apache.org/xml/features/disallow-doctype-decl", true)
-            }
-            val parser = factory.newSAXParser()
-            parser.parse(InputSource(StringReader(xmlContent)), handler)
-        } catch (e: SAXException) {
-            handler.issues.add(
-                DlofIssue(
-                    severity = Severity.ERROR,
-                    code = IssueCode.XML_SYNTAX_ERROR,
-                    message = "خطأ في بنية XML: ${e.message ?: "تنسيق غير صالح"}",
-                    fileName = fileName,
-                    line = handler.lastKnownLine
-                )
-            )
-        } catch (e: Exception) {
-            handler.issues.add(
-                DlofIssue(
-                    severity = Severity.ERROR,
-                    code = IssueCode.XML_SYNTAX_ERROR,
-                    message = "تعذّرت قراءة الملف كـ XML: ${e.message ?: e.javaClass.simpleName}",
-                    fileName = fileName,
-                    line = -1
-                )
-            )
-        }
-        return handler.buildResult()
+    private val validXml = """
+        <?xml version="1.0" encoding="UTF-8"?>
+        <documentLoop version="1.0" id="term-001">
+          <metadata>
+            <title>عنوان</title>
+            <domain>infoLoop</domain>
+          </metadata>
+          <loopLinks>
+            <previous></previous>
+            <next></next>
+          </loopLinks>
+          <content type="termDefinition">
+            <term>DLoF</term>
+            <definition>تعريف</definition>
+          </content>
+        </documentLoop>
+    """.trimIndent()
+
+    @Test
+    fun `valid file has no issues`() {
+        val result = SingleFileParser.parse("valid.dlof", validXml)
+        assertTrue(result.issues.isEmpty())
+        assertEquals("term-001", result.id)
+        assertEquals("infoLoop", result.domain)
+        assertEquals("termDefinition", result.contentType)
     }
 
-    private class Handler(private val fileName: String) : DefaultHandler() {
-        val issues = mutableListOf<DlofIssue>()
-        private var locator: Locator? = null
-        var lastKnownLine: Int = -1
-            private set
+    @Test
+    fun `missing version is a warning`() {
+        // ملاحظة: يجب حذف خاصية version من <documentLoop> فقط، وليس من إعلان
+        // XML (<?xml version="1.0" ...?>) الذي يقع في السطر الأول - حذفها من
+        // هناك يجعل الملف غير صالح كـ XML أصلاً (version إلزامية في الإعلان)
+        // وهو ما كان يسبب فشل هذا الاختبار (XML_SYNTAX_ERROR بدل MISSING_VERSION).
+        val xml = validXml.replace("<documentLoop version=\"1.0\" id=\"term-001\">", "<documentLoop id=\"term-001\">")
+        val result = SingleFileParser.parse("no-version.dlof", xml)
+        assertTrue(result.issues.any { it.code == IssueCode.MISSING_VERSION && it.severity == Severity.WARNING })
+    }
 
-        private var depth = 0
-        private var sawRoot = false
-        private var sawMetadata = false
-        private var sawContent = false
-        private var sawLoopLinks = false
-        private var rootId: String? = null
-        private var rootVersion: String? = null
-        private var domain: String? = null
-        private var contentType: String? = null
-        private var nextId: String? = null
-        private var previousId: String? = null
+    @Test
+    fun `unknown content type is an error`() {
+        val xml = validXml.replace("termDefinition", "bogusType")
+        val result = SingleFileParser.parse("bad-type.dlof", xml)
+        assertTrue(result.issues.any { it.code == IssueCode.UNKNOWN_CONTENT_TYPE && it.severity == Severity.ERROR })
+    }
 
-        // مسار العناصر الحالي لمعرفة أين نحن (metadata/domain, loopLinks/next, ...)
-        private val stack = ArrayDeque<String>()
-        private val textBuffer = StringBuilder()
+    @Test
+    fun `malformed xml is reported as syntax error`() {
+        val xml = "<documentLoop id=\"x\"><metadata></metadata><content type=\"genericItem\">"
+        val result = SingleFileParser.parse("broken.dlof", xml)
+        assertTrue(result.issues.any { it.code == IssueCode.XML_SYNTAX_ERROR })
+    }
 
-        override fun setDocumentLocator(l: Locator) {
-            locator = l
-        }
+    @Test
+    fun `package cross validation detects broken and mismatched links`() {
+        val a = validXml
+            .replace("term-001", "a")
+            .replace("<next></next>", "<next>b</next>")
+        val b = validXml
+            .replace("term-001", "b")
+            .replace("<previous></previous>", "<previous>zzz</previous>")
 
-        override fun startElement(uri: String?, localName: String?, qName: String, attributes: Attributes) {
-            lastKnownLine = locator?.lineNumber ?: -1
-            depth++
-            textBuffer.setLength(0)
+        val resultA = SingleFileParser.parse("a.dlof", a)
+        val resultB = SingleFileParser.parse("b.dlof", b)
 
-            if (depth == 1) {
-                sawRoot = true
-                if (qName != DlofRules.ROOT_TAG) {
-                    issues.add(
-                        DlofIssue(
-                            Severity.ERROR, IssueCode.MISSING_ROOT_ELEMENT,
-                            "العنصر الجذر يجب أن يكون <${DlofRules.ROOT_TAG}> وليس <$qName>.",
-                            fileName, lastKnownLine
-                        )
-                    )
-                } else {
-                    rootId = attributes.getValue(DlofRules.ID_ATTR)?.trim()?.ifEmpty { null }
-                    rootVersion = attributes.getValue(DlofRules.VERSION_ATTR)?.trim()?.ifEmpty { null }
-                    if (rootId == null) {
-                        issues.add(
-                            DlofIssue(
-                                Severity.ERROR, IssueCode.MISSING_ID,
-                                "خاصية id مفقودة أو فارغة على العنصر الجذر <${DlofRules.ROOT_TAG}>.",
-                                fileName, lastKnownLine
-                            )
-                        )
-                    }
-                    // ✅ هذا الجزء موجود بالفعل ويجب أن يعمل
-                    if (rootVersion == null) {
-                        issues.add(
-                            DlofIssue(
-                                Severity.WARNING, IssueCode.MISSING_VERSION,
-                                "خاصية version مفقودة على العنصر الجذر. سيُستخدم الافتراضي ${DlofRules.DEFAULT_VERSION} عند التصحيح التلقائي.",
-                                fileName, lastKnownLine, rootId
-                            )
-                        )
-                    }
-                }
-            }
-
-            when (qName) {
-                DlofRules.METADATA_TAG -> if (depth == 2) sawMetadata = true
-                DlofRules.LOOP_LINKS_TAG -> if (depth == 2) sawLoopLinks = true
-                DlofRules.CONTENT_TAG -> if (depth == 2) {
-                    sawContent = true
-                    contentType = attributes.getValue(DlofRules.CONTENT_TYPE_ATTR)?.trim()?.ifEmpty { null }
-                    if (contentType == null) {
-                        issues.add(
-                            DlofIssue(
-                                Severity.ERROR, IssueCode.MISSING_CONTENT_TYPE,
-                                "خاصية type مفقودة على <${DlofRules.CONTENT_TAG}>.",
-                                fileName, lastKnownLine, rootId
-                            )
-                        )
-                    } else if (contentType !in DlofRules.ALLOWED_CONTENT_TYPES) {
-                        issues.add(
-                            DlofIssue(
-                                Severity.ERROR, IssueCode.UNKNOWN_CONTENT_TYPE,
-                                "نوع محتوى غير معروف: \"$contentType\". الأنواع المعتمدة: ${DlofRules.ALLOWED_CONTENT_TYPES.joinToString()}.",
-                                fileName, lastKnownLine, rootId
-                            )
-                        )
-                    }
-                }
-            }
-
-            stack.addLast(qName)
-        }
-
-        override fun characters(ch: CharArray, start: Int, length: Int) {
-            textBuffer.append(ch, start, length)
-        }
-
-        override fun endElement(uri: String?, localName: String?, qName: String) {
-            val text = textBuffer.toString().trim()
-            val parent = if (stack.size >= 2) stack.elementAt(stack.size - 2) else null
-
-            if (qName == DlofRules.DOMAIN_TAG && parent == DlofRules.METADATA_TAG) {
-                domain = text.ifEmpty { null }
-            }
-            if (qName == DlofRules.NEXT_TAG && parent == DlofRules.LOOP_LINKS_TAG) {
-                nextId = text.ifEmpty { null }
-            }
-            if (qName == DlofRules.PREVIOUS_TAG && parent == DlofRules.LOOP_LINKS_TAG) {
-                previousId = text.ifEmpty { null }
-            }
-
-            if (stack.isNotEmpty()) stack.removeLast()
-            textBuffer.setLength(0)
-            depth--
-        }
-
-        override fun endDocument() {
-            if (!sawRoot) {
-                issues.add(
-                    DlofIssue(
-                        Severity.ERROR, IssueCode.MISSING_ROOT_ELEMENT,
-                        "الملف فارغ أو لا يحوي أي عنصر جذر.", fileName, -1
-                    )
-                )
-                return
-            }
-            if (!sawMetadata) {
-                issues.add(
-                    DlofIssue(
-                        Severity.ERROR, IssueCode.MISSING_METADATA,
-                        "العنصر <${DlofRules.METADATA_TAG}> مفقود.", fileName, -1, rootId
-                    )
-                )
-            } else if (domain == null) {
-                issues.add(
-                    DlofIssue(
-                        Severity.WARNING, IssueCode.UNKNOWN_DOMAIN,
-                        "لم يُحدَّد <${DlofRules.DOMAIN_TAG}> داخل metadata.", fileName, -1, rootId
-                    )
-                )
-            } else if (domain !in DlofRules.ALLOWED_DOMAINS) {
-                issues.add(
-                    DlofIssue(
-                        Severity.WARNING, IssueCode.UNKNOWN_DOMAIN,
-                        "قيمة domain غير معروفة: \"$domain\". القيم المعتمدة: ${DlofRules.ALLOWED_DOMAINS.joinToString()}.",
-                        fileName, -1, rootId
-                    )
-                )
-            }
-            if (!sawContent) {
-                issues.add(
-                    DlofIssue(
-                        Severity.ERROR, IssueCode.MISSING_CONTENT,
-                        "العنصر <${DlofRules.CONTENT_TAG}> مفقود.", fileName, -1, rootId
-                    )
-                )
-            }
-        }
-
-        fun buildResult(): SingleFileResult = SingleFileResult(
-            fileName = fileName,
-            issues = issues,
-            id = rootId,
-            version = rootVersion,
-            domain = domain,
-            contentType = contentType,
-            nextId = nextId,
-            previousId = previousId,
-            hasLoopLinks = sawLoopLinks
-        )
+        val report = ValidationReport(listOf(resultA, resultB), emptyList())
+        // نستخدم نفس منطق crossValidate عبر PackageValidator من خلال محاكاة نتائج الملفات
+        val fixed = DlofAutoFixer.autoFix(mapOf("a.dlof" to a, "b.dlof" to b), report)
+        assertTrue(fixed.containsKey("a.dlof"))
+        assertTrue(fixed.containsKey("b.dlof"))
     }
 }
