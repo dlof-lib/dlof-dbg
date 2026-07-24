@@ -1,4 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- أيقونة dlof-dbg الرسمية: مستند DLoF (بألوان parchment/ink الرسمية) مع عدسة
+     فحص/تصحيح بالذهبي DlofMoss الرسمي - تطابق هوية عائلة تطبيقات DLoF. -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="108dp"
     android:height="108dp"
@@ -6,33 +8,33 @@
     android:viewportHeight="108">
     <!-- مستند -->
     <path
-        android:fillColor="#FFFFFF"
+        android:fillColor="#EDEFF7"
         android:pathData="M32,24 h30 l12,12 v40 a4,4 0 0 1 -4,4 h-38 a4,4 0 0 1 -4,-4 v-48 a4,4 0 0 1 4,-4 z" />
     <path
-        android:fillColor="#DCE6F7"
+        android:fillColor="#C9CEE0"
         android:pathData="M62,24 v12 h12 z" />
     <!-- سطور نصية -->
     <path
-        android:strokeColor="#9FB4D8"
+        android:strokeColor="#0B0B14"
         android:strokeWidth="2.5"
         android:pathData="M36,46 h28" />
     <path
-        android:strokeColor="#9FB4D8"
+        android:strokeColor="#0B0B14"
         android:strokeWidth="2.5"
         android:pathData="M36,54 h28" />
     <path
-        android:strokeColor="#9FB4D8"
+        android:strokeColor="#0B0B14"
         android:strokeWidth="2.5"
         android:pathData="M36,62 h18" />
-    <!-- عدسة تصحيح -->
+    <!-- عدسة الفحص/التصحيح -->
     <path
-        android:fillColor="#3DDC84"
+        android:fillColor="#D2A020"
         android:pathData="M66,58 m-14,0 a14,14 0 1,0 28,0 a14,14 0 1,0 -28,0 z" />
     <path
-        android:fillColor="#FFFFFF"
+        android:fillColor="#EDEFF7"
         android:pathData="M66,58 m-9,0 a9,9 0 1,0 18,0 a9,9 0 1,0 -18,0 z" />
     <path
-        android:strokeColor="#1E3E7A"
+        android:strokeColor="#0B0B14"
         android:strokeWidth="5"
         android:strokeLineCap="round"
         android:pathData="M76,68 l10,10" />
