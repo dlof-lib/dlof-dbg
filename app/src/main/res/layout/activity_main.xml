@@ -79,11 +79,48 @@
         android:clipToPadding="false"
         android:paddingBottom="8dp" />
 
+    <!-- طرفية برمجية حقيقية: تعرض حياً كل خطوة يقوم بها الفاحص والمحرك الذكي
+         (AI مدمج بالكامل في المسار العادي، وليس خياراً منفصلاً). -->
+    <TextView
+        android:id="@+id/tvTerminalLabel"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingStart="12dp"
+        android:paddingEnd="12dp"
+        android:paddingTop="4dp"
+        android:textColor="@color/dlof_text_secondary"
+        android:textSize="11sp"
+        android:textStyle="bold"
+        android:text="@string/content_desc_icon_terminal" />
+
+    <ScrollView
+        android:id="@+id/svTerminal"
+        android:layout_width="match_parent"
+        android:layout_height="170dp"
+        android:layout_margin="12dp"
+        android:background="@color/dlof_terminal_bg"
+        android:padding="10dp"
+        android:scrollbars="vertical">
+
+        <TextView
+            android:id="@+id/tvTerminal"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:fontFamily="monospace"
+            android:textColor="@color/dlof_terminal_text"
+            android:textSize="11sp"
+            android:textIsSelectable="true"
+            android:text="@string/terminal_placeholder" />
+    </ScrollView>
+
     <com.google.android.material.button.MaterialButton
         android:id="@+id/btnAutoFix"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_margin="12dp"
+        android:layout_marginStart="12dp"
+        android:layout_marginEnd="12dp"
+        android:layout_marginTop="0dp"
+        android:layout_marginBottom="8dp"
         android:visibility="gone"
         app:backgroundTint="@color/dlof_accent"
         app:cornerRadius="10dp"
@@ -93,5 +130,16 @@
         android:textColor="@color/dlof_text_primary"
         android:contentDescription="@string/content_desc_icon_terminal"
         android:text="@string/btn_autofix" />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnDownloadLog"
+        style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="12dp"
+        android:layout_marginEnd="12dp"
+        android:layout_marginBottom="12dp"
+        android:textSize="12sp"
+        android:text="@string/btn_download_log" />
 
 </LinearLayout>
