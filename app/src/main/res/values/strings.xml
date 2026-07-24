@@ -23,4 +23,7 @@
     <string name="label_file">الملف:</string>
     <string name="label_line">السطر:</string>
     <string name="label_fixable">قابل للتصحيح التلقائي</string>
+
+    <string name="content_desc_icon_scan">فحص</string>
+    <string name="content_desc_icon_terminal">طرفية</string>
 </resources>
